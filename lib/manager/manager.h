@@ -1,6 +1,6 @@
 #include <executionState.h>
 #include <ConsoleManager.h>
-
+#include <signalMessageSender.h>
 #include <freertos/semphr.h>
 #include <Arduino.h>
 #include <String.h>
@@ -11,6 +11,7 @@ class Manager
 private:
 	ConsoleManager *console;
 	SemaphoreHandle_t consoleSemaphore;
+	SignalMessageSender *signalMessageSender;
 
 	void DIExecution();
 	static String className;

@@ -8,6 +8,7 @@ Manager::Manager()
     consoleSemaphore = xSemaphoreCreateMutex();
     Serial.begin(CONSOLE_STREAMER_BAUDRATE);
     console = new ConsoleManager(CONSOLE_STREAMER);
+    signalMessageSender = new SignalMessageSender(console, &consoleSemaphore);
 }
 
 ExecutionState Manager::webServiceTaskExecution()
@@ -16,7 +17,7 @@ ExecutionState Manager::webServiceTaskExecution()
     if (xSemaphoreTake(consoleSemaphore, portMAX_DELAY))
     {
         // Critical section for Task 2
-        console->publish(classContext + taskName, "Web Service Task is Running", INF_LOG);
+        console->publish(classContext + taskName, "Web Service Task is Running core-> " + String(xPortGetCoreID()), INF_LOG);
         vTaskDelay(500 / portTICK_PERIOD_MS);
         xSemaphoreGive(consoleSemaphore);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -29,7 +30,7 @@ ExecutionState Manager::notificationTaskExecution()
     if (xSemaphoreTake(consoleSemaphore, portMAX_DELAY))
     {
         // Critical section for Task 2
-        console->publish(classContext + taskName, "Notificiation Task is Running", INF_LOG);
+        console->publish(classContext + taskName, "Notificiation Task is Running core-> " + String(xPortGetCoreID()), INF_LOG);
         vTaskDelay(500 / portTICK_PERIOD_MS);
         xSemaphoreGive(consoleSemaphore);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -52,10 +53,11 @@ ExecutionState Manager::execution()
     if (xSemaphoreTake(consoleSemaphore, portMAX_DELAY))
     {
 
-        console->publish(classContext + methodName, "Manager Execution Task is Running", INF_LOG);
+        console->publish(classContext + methodName, "Manager Execution Task is Running core-> " + String(xPortGetCoreID()), INF_LOG);
         vTaskDelay(500 / portTICK_PERIOD_MS);
         xSemaphoreGive(consoleSemaphore);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+    signalMessageSender->hi();
     return EXE_OK;
 }

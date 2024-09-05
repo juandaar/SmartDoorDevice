@@ -33,8 +33,8 @@ void setup()
   // imperialMarch->starWars();
   manager->setup();
 
-  xTaskCreate(loop1, "Web Task", 1000, NULL, 1, loop1Handler);
-  xTaskCreate(loop2, "Notification", 1000, NULL, 1, loop2Handler);
+  xTaskCreatePinnedToCore(loop2, "Notification", 1000, NULL, 1, loop2Handler, 1);
+  xTaskCreatePinnedToCore(loop1, "Web Server", 1000, NULL, 1, loop1Handler, 0);
 }
 
 void loop()
