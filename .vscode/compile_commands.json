@@ -1,0 +1,11 @@
+{
+  "sonarlint.rules": {
+    "cpp:S5527": "off",
+    "cpp:S1192": {
+      "level": "major",
+      "parameters": {
+        "max": 20
+      }
+    }
+  }
+}
