@@ -16,28 +16,28 @@ void ImperialMarch::beep(int note, int duration)
 
 void ImperialMarch::firstSection()
 {
-  beep(a, 500);
-  beep(a, 500);
-  beep(a, 500);
-  beep(f, 350);
-  beep(cH, 150);
-  beep(a, 500);
-  beep(f, 350);
-  beep(cH, 150);
-  beep(a, 650);
+  beep(im_a, 500);
+  beep(im_a, 500);
+  beep(im_a, 500);
+  beep(im_f, 350);
+  beep(im_cH, 150);
+  beep(im_a, 500);
+  beep(im_f, 350);
+  beep(im_cH, 150);
+  beep(im_a, 650);
 
   digitalWrite(BUZZER_PIN, HIGH);
   delay(500);
 
-  beep(eH, 500);
-  beep(eH, 500);
-  beep(eH, 500);
-  beep(fH, 350);
-  beep(cH, 150);
-  beep(gS, 500);
-  beep(f, 350);
-  beep(cH, 150);
-  beep(a, 650);
+  beep(im_eH, 500);
+  beep(im_eH, 500);
+  beep(im_eH, 500);
+  beep(im_fH, 350);
+  beep(im_cH, 150);
+  beep(im_gS, 500);
+  beep(im_f, 350);
+  beep(im_cH, 150);
+  beep(im_a, 650);
 
   digitalWrite(BUZZER_PIN, HIGH);
 
@@ -46,26 +46,26 @@ void ImperialMarch::firstSection()
 
 void ImperialMarch::secondSection()
 {
-  beep(aH, 500);
-  beep(a, 300);
-  beep(a, 150);
-  beep(aH, 500);
-  beep(gSH, 325);
-  beep(gH, 175);
-  beep(fSH, 125);
-  beep(fH, 125);
-  beep(fSH, 250);
+  beep(im_aH, 500);
+  beep(im_a, 300);
+  beep(im_a, 150);
+  beep(im_aH, 500);
+  beep(im_gSH, 325);
+  beep(im_gH, 175);
+  beep(im_fSH, 125);
+  beep(im_fH, 125);
+  beep(im_fSH, 250);
 
   digitalWrite(BUZZER_PIN, HIGH);
   delay(325);
 
-  beep(aS, 250);
-  beep(dSH, 500);
-  beep(dH, 325);
-  beep(cSH, 175);
-  beep(cH, 125);
-  beep(b, 125);
-  beep(cH, 250);
+  beep(im_aS, 250);
+  beep(im_dSH, 500);
+  beep(im_dH, 325);
+  beep(im_cSH, 175);
+  beep(im_cH, 125);
+  beep(im_b, 125);
+  beep(im_cH, 250);
 
   digitalWrite(BUZZER_PIN, HIGH);
   delay(350);
@@ -78,24 +78,24 @@ void ImperialMarch::starWars()
 
   secondSection();
 
-  beep(f, 250);
-  beep(gS, 500);
-  beep(f, 350);
-  beep(a, 125);
-  beep(cH, 500);
-  beep(a, 375);
-  beep(cH, 125);
-  beep(eH, 650);
+  beep(im_f, 250);
+  beep(im_gS, 500);
+  beep(im_f, 350);
+  beep(im_a, 125);
+  beep(im_cH, 500);
+  beep(im_a, 375);
+  beep(im_cH, 125);
+  beep(im_eH, 650);
 
   delay(500);
   secondSection();
 
-  beep(f, 250);
-  beep(gS, 500);
-  beep(f, 375);
-  beep(cH, 125);
-  beep(a, 500);
-  beep(f, 375);
-  beep(cH, 125);
-  beep(a, 650);
+  beep(im_f, 250);
+  beep(im_gS, 500);
+  beep(im_f, 375);
+  beep(im_cH, 125);
+  beep(im_a, 500);
+  beep(im_f, 375);
+  beep(im_cH, 125);
+  beep(im_a, 650);
 }

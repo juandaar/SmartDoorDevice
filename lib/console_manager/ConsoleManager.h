@@ -40,16 +40,19 @@ typedef enum MsgLogTypes
 class ConsoleManager
 {
 private:
-  Stream &m_stream;
+  SemaphoreHandle_t consoleSemaphore;
+  Stream &stream;
 
-  String m_console_name;
+  String consoleName;
 
 public:
-  ConsoleManager(Stream &stream);
+  ConsoleManager(Stream &stream, String consoleName);
 
-  void init(String console_name);
+  void publish(String context, String message, MsgLogType logType);
 
-  void publish(String str_context, String str_message, MsgLogType type_message);
+  void print(String message);
+
+  void println(String message);
 };
 #endif
 

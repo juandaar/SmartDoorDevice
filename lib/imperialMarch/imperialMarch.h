@@ -4,25 +4,25 @@
 #include <Arduino.h>
 #include <pinMap.h>
 
-#define c 261
-#define d 294
-#define e 329
-#define f 349
-#define g 391
-#define gS 415
-#define a 440
-#define aS 455
-#define b 466
-#define cH 523
-#define cSH 554
-#define dH 587
-#define dSH 622
-#define eH 659
-#define fH 698
-#define fSH 740
-#define gH 784
-#define gSH 830
-#define aH 880
+#define im_c 261
+#define im_d 294
+#define im_e 329
+#define im_f 349
+#define im_g 391
+#define im_gS 415
+#define im_a 440
+#define im_aS 455
+#define im_b 466
+#define im_cH 523
+#define im_cSH 554
+#define im_dH 587
+#define im_dSH 622
+#define im_eH 659
+#define im_fH 698
+#define im_fSH 740
+#define im_gH 784
+#define im_gSH 830
+#define im_aH 880
 
 class ImperialMarch
 {

@@ -1,21 +1,26 @@
+#ifndef _MANAGER_h
+#define _MANAGER_h
+#include "esp_spi_flash.h"
 #include <executionState.h>
 #include <ConsoleManager.h>
+#include <wifiManager.h>
 #include <signalMessageSender.h>
 #include <freertos/semphr.h>
 #include <Arduino.h>
 #include <String.h>
 #include <settings.h>
+#include <webServerManager.h>
+#include <StorageManager.h>
 
 class Manager
 {
 private:
 	ConsoleManager *console;
-	SemaphoreHandle_t consoleSemaphore;
 	SignalMessageSender *signalMessageSender;
-
-	void DIExecution();
-	static String className;
-	static String classContext;
+	WiFiManager *wifi;
+	WebServerManager *webServer;
+	StorageManager *storage;
+	static String className, classContext;
 
 public:
 	Manager();
@@ -24,3 +29,5 @@ public:
 	ExecutionState webServiceTaskExecution();
 	ExecutionState notificationTaskExecution();
 };
+
+#endif
