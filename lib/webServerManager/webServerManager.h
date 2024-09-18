@@ -14,8 +14,7 @@
 #include <ConsoleManager.h>
 #include <arduinojson.h>
 #include <StorageManager.h>
-#include <webAuthenticator.h>
-#include <FS.h>
+#include <WifiManager.h>
 
 #define TIMEOUT_SENDING_VIEW 3000
 
@@ -33,7 +32,7 @@
 
 #ifndef WEB_SERVER_PAGE
 #define WEB_SERVER_PAGE "www.systematix-poc.qc.ca"
-#define PATH_WEB_SERVER "/platform"
+#define PATH_WEB_SERVER ""
 #endif
 
 #define WEB_SERVER_REDIRECTED                                                          \
@@ -54,19 +53,21 @@ private:
     unsigned long lastMillis;
     WebServer *server;
     void webServerConfig();
-    void login();
-    void upgrade();
-    void open();
+    void connectToNetwork();
+    void networks();
+    void networkState();
+    void terminal();
     void handleServer();
     String ContentType(String path);
-    ExecutionState sendStreamFromSd(String path);
+    ExecutionState sendStreamFile(String path, String contentType);
     ConsoleManager *console;
     StorageManager *storage;
-    WebAuthenticator *authenticator;
+    WiFiManager *wifiManager;
+    // WebAuthenticator *authenticator;
     static String className, classContext;
 
 public:
-    WebServerManager(ConsoleManager *, StorageManager *);
+    WebServerManager(ConsoleManager *, StorageManager *, WiFiManager *wifiManager);
     ExecutionState setup();
     ExecutionState init(String *data);
     ExecutionState start();

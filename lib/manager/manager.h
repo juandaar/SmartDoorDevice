@@ -11,6 +11,7 @@
 #include <settings.h>
 #include <webServerManager.h>
 #include <StorageManager.h>
+#include <rfidManager.h>
 
 class Manager
 {
@@ -20,6 +21,7 @@ private:
 	WiFiManager *wifi;
 	WebServerManager *webServer;
 	StorageManager *storage;
+	RFIDManager *rfidManager;
 	static String className, classContext;
 
 public:

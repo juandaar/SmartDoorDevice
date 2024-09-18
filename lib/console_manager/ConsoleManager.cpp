@@ -14,31 +14,31 @@ void ConsoleManager::publish(String context, String message, MsgLogType logType)
   {
   case INF_LOG:
 #ifdef SHOW_INF_MESSAGES
-    auxString = consoleName + " >> " + context + " >> INF >> " + message;
+    auxString = "\033[37m " + consoleName + "\033[36m >>\033[35m " + context + "\033[36m >> \033[32m INF \033[36m >>\033[0m " + message;
 #endif
     break;
   case ERR_LOG:
 #ifdef SHOW_ERR_MESSAGES
-    auxString = consoleName + " >> " + context + " >> ERR >> " + message;
+    auxString = "\033[37m " + consoleName + " \033[36m >>\033[35m " + context + "\033[36m >> \033[31m ERR \033[36m >>\033[0m " + message;
 #endif
     break;
   case VER_LOG:
 #ifdef SHOW_VER_MESSAGES
-    auxString = consoleName + " >> " + context + " >> VER >> " + message;
+    auxString = "\033[37m " + consoleName + " \033[36m >>\033[35m " + context + "\033[36m >> \033[32m VER \033[36m >>\033[0m " + message;
 #endif
     break;
   case EXE_LOG:
 #ifdef SHOW_VER_MESSAGES
-    auxString = consoleName + " >> " + context + " >> EXE >> " + message;
+    auxString = "\033[37m " + consoleName + " \033[36m >>\033[35m " + context + "\033[36m >> \033[32m EXE \033[36m >>\033[0m " + message;
 #endif
     break;
   case WAR_LOG:
 #ifdef SHOW_WAR_MESSAGES
-    auxString = consoleName + " >> " + context + " >> WAR >> " + message;
+    auxString = "\033[37m " + consoleName + "\033[36m >>\033[35m " + context + " \033[36m >>\033[33m WAR  \033[36m >>\033[0m " + message;
 #endif
     break;
   default:
-    auxString = consoleName + " >> default_message  >> ERR >> No valid type message";
+    auxString = "\033[37m " + consoleName + "\033[36m >> \033[35m default_message\033[36m >>\033[31m ERR  \033[36m >>\033[0m No valid type message";
     break;
   }
 

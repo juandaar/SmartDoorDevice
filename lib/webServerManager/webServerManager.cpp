@@ -3,11 +3,12 @@
 String WebServerManager::className = "WebServerManager";
 String WebServerManager::classContext = "WebServer::";
 
-WebServerManager::WebServerManager(ConsoleManager *console, StorageManager *storage)
+WebServerManager::WebServerManager(ConsoleManager *console, StorageManager *storage, WiFiManager *wifiManager)
 {
     const String methodName = "constructor";
     this->console = console;
     this->storage = storage;
+    this->wifiManager = wifiManager;
     this->console->publish(classContext + methodName, "Web Service was built", INF_LOG);
 }
 
@@ -15,7 +16,6 @@ ExecutionState WebServerManager::setup()
 {
     const String methodName = "Setup";
     this->server = new WebServer(WEB_SERVER_PORT);
-    this->authenticator = new WebAuthenticator(console, storage);
     this->webServerConfig();
     this->console->publish(classContext + methodName, "Web Service setup", INF_LOG);
     return EXE_OK;
@@ -23,12 +23,12 @@ ExecutionState WebServerManager::setup()
 
 void WebServerManager::webServerConfig()
 {
-    server->on("/login", HTTP_POST, [this]()
-               { login(); });
-    server->on("/upgrade", HTTP_POST, [this]()
-               { upgrade(); });
-    server->on("/open", HTTP_POST, [this]()
-               { open(); });
+    server->on("/network", HTTP_POST, [this]()
+               { connectToNetwork(); });
+    server->on("/network", HTTP_GET, [this]()
+               { networks(); });
+    server->on("/network/state", HTTP_GET, [this]()
+               { networkState(); });
     server->onNotFound([this]()
                        { handleServer(); });
     this->serverState = false;
@@ -63,75 +63,31 @@ ExecutionState WebServerManager::loop()
         int i = 0;
         do
         {
-            i++;
-            if (i == 2)
-            {
-                console->publish(classContext + methodName, "Proccessing request from server ", INF_LOG);
-            }
-            else if (i > 2 && i % 100 == 0)
-            {
-                console->print("-");
-            }
             server->handleClient();
             server->client();
         } while (millis() - lastMillis < TIMEOUT_SENDING_VIEW);
-        if (i > 1)
-            console->println("");
     }
     return EXE_OK;
 }
 
 void WebServerManager::handleServer()
 {
+    String stringHelper;
+    JsonDocument doc;
     String path = server->uri();
     const String methodName = "handleServer";
     console->publish(classContext + methodName, "Path: " + path, INF_LOG);
     lastMillis = millis();
 
     if (path.endsWith("/"))
-    {
-        console->println("\tindexing path...");
         path += "index.html";
-    }
 
     if (path == PATH_WEB_SERVER)
-    {
         path += "/index.html";
-        console->println("\tindexing path...");
-    }
 
     String fileType = ContentType(path);
-    console->println("File type: " + fileType);
 
-    if (fileType == "text/html")
-    {
-        String desired_path = PATH_WEB_SERVER;
-        desired_path += "/index.html";
-        if (path == desired_path)
-        {
-
-            path = "/login.html";
-
-            path = "/login.html";
-
-            path = "/bottom.html";
-        }
-        else
-        {
-            String pages = WEB_SERVER_REDIRECTED;
-            console->println(pages);
-            server->send(200, "text/html", pages);
-            console->print(pages);
-        }
-    }
-    else if (fileType == "text/plain")
-    {
-        String pages = WEB_SERVER_REDIRECTED;
-        server->send(200, "text/html", pages);
-        console->print(pages);
-    }
-
-    if (sendStreamFromSd(path) == EXE_OK)
+    if (sendStreamFile(path, fileType) == EXE_OK)
     {
         String message = "imagenes!\n\n";
         message += "URI: ";
@@ -140,10 +96,8 @@ void WebServerManager::handleServer()
     }
     else
     {
-        String message = "Fucking!\n\n";
-        message += "URI: ";
-        message += server->uri();
-        server->send(404, "text/plain", message);
+        console->publish(classContext + methodName, "File not Found: " + path, WAR_LOG);
+        server->send(404, "text/plain", "Not Found->" + path);
     }
 }
 
@@ -182,89 +136,129 @@ String WebServerManager::ContentType(String filename)
     return "text/plain";
 }
 
-ExecutionState WebServerManager::sendStreamFromSd(String path)
+ExecutionState WebServerManager::sendStreamFile(String path, String contentType)
 {
-    File file;
-    /*
-    if (storage->getFile(SD, &path[0u], file) == EXE_OK)
+    File file = storage->getFile(path);
+    if (!file)
     {
-        server->streamFile(file, "text/html");
         file.close();
-        return EXE_OK;
-    }
-    else
-    {
         return EXE_ERROR;
     }
-    */
+
+    server->streamFile(file, contentType);
+    file.close();
     return EXE_OK;
 }
 
-void WebServerManager::login()
+void WebServerManager::connectToNetwork()
 {
-    const String methodName = "login";
+    const String methodName = "connectToNetwork";
+    String stringHelper;
+    JsonDocument doc;
 
-    if (server->arg("USERNAME") && server->arg("PASSWORD"))
+    if (server->hasArg("plain"))
     {
-        String token = "Bearer " + authenticator->generateToken(server->arg("USERNAME"));
-        server->sendHeader("Authorization", token);
-
-        server->send(200, "text/html", "<h1>Hello from ESP32!</h1>");
+        console->publish(classContext + methodName, "The request has arguments ", INF_LOG);
+        String json = String(server->arg("plain"));
+        DeserializationError error = deserializeJson(doc, json);
+        if (error)
+        {
+            doc.clear();
+            doc["msg"] = "Il y a un probleme avec le Json";
+            serializeJson(doc, stringHelper);
+            doc.clear();
+            server->send(200, "application/json", stringHelper);
+            return;
+        }
     }
+    const String ssid = doc["ssid"];
+    const String password = doc["password"];
+    console->println("\t\tssid: " + ssid);
+    console->println("\t\tpassword: " + password);
+    if (wifiManager->isWifiActive())
+    {
+        if (wifiManager->wifiStatus())
+        {
+            doc.clear();
+            doc["msg"] = "There is a configured network";
+            serializeJson(doc, stringHelper);
+            doc.clear();
+            server->send(200, "application/json", stringHelper);
+
+            return;
+        }
+    }
+    if (ssid == NULL || ssid == "")
+    {
+        console->publish(classContext + methodName, "SSID is missing", ERR_LOG);
+        doc.clear();
+        doc["msg"] = "Le SSID est manquant";
+        serializeJson(doc, stringHelper);
+        doc.clear();
+        server->send(400, "application/json", stringHelper);
+        return;
+    }
+    if (password == NULL || password == "")
+    {
+        console->publish(classContext + methodName, "Password is missing", ERR_LOG);
+        doc.clear();
+        doc["msg"] = "Le mot de passe est manquant";
+        serializeJson(doc, stringHelper);
+        doc.clear();
+        server->send(400, "application/json", stringHelper);
+        return;
+    }
+    console->publish(classContext + methodName, "Connecting to-> " + ssid, INF_LOG);
+    if (wifiManager->connectToWIFI(ssid, password))
+    {
+        console->publish(classContext + methodName, "The devices was successfully connected" + ssid, INF_LOG);
+        doc.clear();
+        doc["msg"] = "connexion réussie";
+        serializeJson(doc, stringHelper);
+        doc.clear();
+        server->send(200, "application/json", stringHelper);
+        return;
+    }
+    console->publish(classContext + methodName, "The connection failed" + ssid, ERR_LOG);
+    doc.clear();
+    doc["msg"] = "La connexion a échoué, réessayez s'il vous plaît";
+    serializeJson(doc, stringHelper);
+    doc.clear();
+    server->send(400, "application/json", stringHelper);
 }
 
-void WebServerManager::upgrade()
+void WebServerManager::networks()
 {
-    /*
-    if (server_view_state == LOGIN)
+    const String methodName = "networks";
+    JsonDocument doc;
+    JsonArray array = doc["networks"].to<JsonArray>();
+    String stringHelper;
+    console->publish(classContext + methodName, "network scanning", INF_LOG);
+    int n = WiFi.scanNetworks();
+    if (n > 0)
     {
-        m_server->send(200, "aplication/json", "{\"code\":\"300\"}");
-        return;
+        console->publish(classContext + methodName, "networks availables-> " + String(n), INF_LOG);
+        for (int i = 0; i < n; ++i)
+        {
+            array.add(WiFi.SSID(i));
+            delay(10);
+        }
     }
-
-    if (!m_server->arg("TOKEN"))
-    {
-        server_view_state = LOGIN;
-        m_server->send(200, "aplication/json", "{\"code\":\"300\"}");
-    }
-    String token = m_server->arg("TOKEN");
-    if (provitional_authentication_cookie_check(token) != EXE_OK)
-    {
-        server_view_state = LOGIN;
-        console->print("ENTRO");
-        // m_server->send(200, "aplication/json", "{\"code\":\"300\"}");
-        return;
-    }
-    console->print("JSON: ");
-    console->println(*m_json_frame);
-    m_server->send(200, "aplication/json", *m_json_frame);
-    */
+    serializeJson(doc, stringHelper);
+    doc.clear();
+    server->send(200, "application/json", stringHelper);
 }
 
-void WebServerManager::open()
+void WebServerManager::networkState()
 {
-    /*
-    if (server_view_state == LOGIN)
-    {
-        m_server->send(200, "aplication/json", "{\"code\":\"300\"}");
-        return;
-    }
+    const String methodName = "networkState";
+    JsonDocument doc;
+    doc["state"] = wifiManager->wifiStatus();
+    String stringHelper;
+    server->send(200, "application/json", stringHelper);
+}
 
-    if (!m_server->arg("TOKEN"))
-    {
-        server_view_state = LOGIN;
-        // m_server->sendHeader("Content-Type: application/json");
-        return;
-    }
-
-    String token = m_server->arg("TOKEN");
-    if (provitional_authentication_cookie_check(token) != EXE_OK)
-    {
-        server_view_state = LOGIN;
-        // m_server->send(200, "aplication/json", "{\"code\":\"300\"}");
-        return;
-    }
-
-    m_server->send(200, "aplication/json", "{\"code\":\"200\"}");
-    */
+void WebServerManager::terminal()
+{
+    server->send(200, "application/json", "{\"msg\":\"oli\"}");
 }

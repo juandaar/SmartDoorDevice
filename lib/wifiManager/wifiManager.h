@@ -44,7 +44,7 @@ private:
     char *ssid, *password;
     DNSServer *dnsServer;
     WiFiMulti *wifiMulti;
-    bool apState, wifiState, cpState;
+    bool apState, wifiActive, cpState;
     ConsoleManager *console;
     static String className, classContext;
 
@@ -52,7 +52,8 @@ public:
     WiFiManager(ConsoleManager *);
     bool connectToWIFI(String ssid, String password);
     bool disconnectFromWIFI();
-    bool stateWifi();
+    bool isWifiActive();
+    bool wifiStatus();
     bool enableAP();
     bool disableAP();
     bool enableCP();

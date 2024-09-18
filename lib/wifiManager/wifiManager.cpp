@@ -11,7 +11,7 @@ WiFiManager::WiFiManager(ConsoleManager *console)
 
     this->wifiMulti = new WiFiMulti;
     this->dnsServer = new DNSServer;
-    apState, wifiState, cpState = false;
+    apState, wifiActive, cpState = false;
     console->publish(classContext + methodName, "the network manager was correctly built ", INF_LOG);
 }
 
@@ -62,14 +62,17 @@ bool WiFiManager::disconnectFromWIFI()
     }
 }
 
-bool WiFiManager::stateWifi()
+bool WiFiManager::wifiStatus()
 {
     const String methodName = "stateWifi";
     if (wifiMulti->run() == WL_CONNECTED)
         return true;
-
-    console->publish(classContext + methodName, "Wifi does not work", ERR_LOG);
     return false;
+}
+
+bool WiFiManager::isWifiActive()
+{
+    return wifiActive;
 }
 
 bool WiFiManager::enableAP()

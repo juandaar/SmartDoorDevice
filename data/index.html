@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Configuration initiale</title>
+  <link rel="shortcut icon" id="icon" type="image/x-icon" href="/resources/favicon.ico" />
+  <style>
+    body {
+      font-family: arial, helvetica;
+      background-color: #fffbf3;
+    }
+
+    .center {
+      left: 50%;
+      top: 50%;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .input_format {
+      width: 300px;
+      height: 25px;
+      padding-left: 5px;
+      border-radius: 25px;
+      color: #fff;
+    }
+
+    ::-webkit-input-placeholder {
+      /* WebKit browsers */
+      color: #FFF;
+    }
+
+    :-moz-placeholder {
+      /* Mozilla Firefox 4 to 18 */
+      color: #FFF;
+    }
+
+    ::-moz-placeholder {
+      /* Mozilla Firefox 19+ */
+      color: #FFF;
+    }
+
+    ::-ms-input-placeholder {
+      /* Internet Explorer 10+ */
+      color: #FFF;
+    }
+
+
+    #preloader_c {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      background: #fffbf3;
+      opacity: 0.8;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+
+    #preloader_c>div {
+      display: block;
+      position: relative;
+      left: 50%;
+      top: 50%;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: #003087;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+      /* Chrome, Firefox 16+, IE 10+, Opera */
+    }
+
+    #preloader_c>div:before {
+      content: "";
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      right: 5px;
+      bottom: 5px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: #003087;
+      -webkit-animation: spin 3s linear infinite;
+      /* Chrome, Opera 15+, Safari 5+ */
+      animation: spin 3s linear infinite;
+      /* Chrome, Firefox 16+, IE 10+, Opera */
+    }
+
+    #preloader_c>div:after {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      bottom: 15px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: #003087;
+      -webkit-animation: spin 1.5s linear infinite;
+      animation: spin 1.5s linear infinite;
+      /* Chrome, Firefox 16+, IE 10+, Opera */
+    }
+
+    @keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+
+
+
+    }
+
+
+
+    .alert {
+      color: red;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body">
+  <div class='center' type="hidden">
+
+    <div id="preloader_c">
+      <div>
+      </div>
+    </div>
+
+    <img id="logo" src='/resources/logo.png'><br><br>
+    <h3>sélectionnez votre réseau et entrez le mot de passe</h3>
+    <div>
+      <select class='input_format' type='select' name='ssid' id='ssid' required
+        style='border:1px solid #00bfdb;     background-color: #00bfdb;'>
+        <option selected disabled hidden>SSID</option>
+      </select><br><br>
+      <input class='input_format' id='password' type='password' name='password' placeholder='Mot de passe'
+        style='border:1px solid #00bfdb;     background-color: #00bfdb;'><br><br>
+      <input onclick="sendWifiInfo()" class='input_format' type='submit' value='Enviar'
+        style='border:1px solid #0ce789; background-color: #0ce789; height:30px;'><br><br>
+      <span id="mensaje" class='alert'></span>
+      <br><br>
+    </div>
+
+  </div>
+  <script>
+    let imageloaded=0;
+    const logo= document.getElementById('logo');
+    logo.addEventListener('load', searchNetworks);
+    document.getElementById("preloader_c").style.display = "none";
+
+    function sendWifiInfo() {
+      document.getElementById("preloader_c").style.display = "flex";
+      var ssid = document.getElementById("ssid").value;
+      var password = document.getElementById("password").value;
+      if (ssid == "SSID")
+        var ssid = "";
+      var form = new XMLHttpRequest();
+      form.open("POST", "/network", true);
+      form.setRequestHeader("Content-type", "application/json");
+      form.setRequestHeader("Cache-Control", "no-cache");
+      form.timeout = 200000;
+      form.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          var data = JSON.parse(this.responseText);
+          if (data['code'] == '200') {
+            window.location = "/";
+          }
+          else if (data['code'] == '210') {
+            window.location = "/";
+          }
+          else {
+            document.getElementById("preloader_c").style.display = "none";
+            document.getElementById("mensaje").innerHTML = data['msg'];
+          }
+        }
+        else {
+          confirm();
+        }
+      }
+      var body = { "ssid": ssid, "password": password };
+      form.send(JSON.stringify(body));
+    }
+
+    function confirm() {
+
+      var confirm = new XMLHttpRequest();
+      confirm.open("GET", "/network/state", true);
+      confirm.setRequestHeader("Cache-Control", "no-cache");
+      confirm.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          var data = JSON.parse(this.responseText);
+          if (data['code'] == '200') {
+            window.location = "/";
+
+          }
+          else if (data['code'] == '210') {
+            window.location = "/";
+          }
+          else if (data['code'] == '600') {
+            confirm();
+          }
+          else {
+            document.getElementById("preloader_c").style.display = "none";
+            document.getElementById("mensaje").innerHTML = data['msg'];
+
+          }
+        }
+        else if (this.status == 403 || this.status == 404 || this.readyState == 0) {
+
+          confirm();
+        }
+
+
+      }
+      confirm.send();
+    }
+
+
+    function searchNetworks () {
+      console.log("Holi")
+      document.getElementById("preloader_c").style.display = "flex";
+      var networks = new XMLHttpRequest();
+      networks.open("GET", "/network", true);
+      networks.setRequestHeader("timeout", "500000");
+
+      networks.onload = function () {
+        var data = JSON.parse(this.responseText);
+
+        if (data['networks'].lengt == 0) {
+          var option = document.createElement("option");
+          option.text = 'Aucune';
+          option.value = 'Aucune';
+          document.getElementById("ssid").appendChild(option);
+        }
+        else {
+          data['networks'].forEach(network => {
+            console.log(networks);
+            var option = document.createElement("option");
+            option.text = network;
+            option.value = network;
+            document.getElementById("ssid").appendChild(option);
+          });
+         
+        }
+        document.getElementById("preloader_c").style.display = "none";
+      }
+
+      networks.error = function()
+      {
+        var data = JSON.parse(this.responseText);
+        document.getElementById("mensaje").innerHTML = data['msg'];
+        document.getElementById("preloader_c").style.display = "none";
+
+      }
+      networks.send();
+      
+    };
+
+ 
+  </script>
+
+  </body>
+
+
+
+
+
+
+
+
+
+</html>
