@@ -12,6 +12,8 @@
 #include <webServerManager.h>
 #include <StorageManager.h>
 #include <rfidManager.h>
+#include <FirestoreClient.h>
+#include <TaskMessage.h>
 
 class Manager
 {
@@ -22,6 +24,8 @@ private:
 	WebServerManager *webServer;
 	StorageManager *storage;
 	RFIDManager *rfidManager;
+	FirestoreClient *firestoreClient;
+	QueueHandle_t messageQueue;
 	static String className, classContext;
 
 public:

@@ -14,20 +14,15 @@ Manager::Manager()
 ExecutionState Manager::webServiceTaskExecution()
 {
     static String taskName = "webServiceTask";
-
-    // Critical section for Task 1
-    // console->publish(classContext + taskName, "Web Service Task is Running core-> " + String(xPortGetCoreID()), INF_LOG);
-    // console->publish(classContext + taskName, "DNS Loop-> ", INF_LOG);
     wifi->dnsLoop();
     webServer->loop();
     return EXE_OK;
 }
 ExecutionState Manager::notificationTaskExecution()
 {
+    bool flag = wifi->isWifiActive();
     static String taskName = "notificationTask";
-
-    // Critical section for Task 2
-    // console->publish(classContext + taskName, "Notificiation Task is Running core-> " + String(xPortGetCoreID()), INF_LOG);
+    firestoreClient->loop(flag);
 
     return EXE_OK;
 }
@@ -40,11 +35,13 @@ ExecutionState Manager::setup()
     storage = new StorageManager(console);
     webServer = new WebServerManager(console, storage, wifi);
     signalMessageSender->setup();
-    rfidManager->setup();
     wifi->enableAP();
     // wifi->enableCP();
     webServer->setup();
     webServer->start();
+    this->messageQueue = xQueueCreate(10, 30);
+    rfidManager->setup(&messageQueue);
+    firestoreClient = new FirestoreClient(console, &messageQueue);
     console->publish(classContext + methodName, "setup proccess was succesfully finished", INF_LOG);
     return EXE_OK;
 }

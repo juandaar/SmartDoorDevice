@@ -20,21 +20,22 @@
 #include <SignalMessageSender.h>
 #include <PinMap.h>
 #include <executionState.h>
+#include <TaskMessage.h>
 
 class RFIDManager
 {
 private:
     ConsoleManager *console;
     SignalMessageSender *signalSender;
-    static String className, classContext;
     MFRC522 mfrc522;
     JsonDocument users;
-
+    QueueHandle_t *messageQuote;
     RFIDCard check();
+    static String className, classContext;
 
 public:
     RFIDManager(ConsoleManager *console, SignalMessageSender *signalSender);
-    ExecutionState setup();
+    ExecutionState setup(QueueHandle_t *messageQuote);
     ExecutionState loop();
 };
 

@@ -13,9 +13,10 @@ RFIDManager::RFIDManager(ConsoleManager *console, SignalMessageSender *signalSen
     this->console->publish(classContext + methodName, "The RFIDManager was built", INF_LOG);
 }
 
-ExecutionState RFIDManager::setup()
+ExecutionState RFIDManager::setup(QueueHandle_t *messageQuote)
 {
     const String methodName = "Setup";
+    this->messageQuote = messageQuote;
     mfrc522.PCD_Init();
     DeserializationError error = deserializeJson(users, RFID_USERS);
     if (error)
@@ -35,6 +36,7 @@ ExecutionState RFIDManager::loop()
     if (card.getState() == CARD_OK)
     {
         static String methodName = "loop";
+        TaskMessage message;
         JsonObject user;
         JsonArray array = users.as<JsonArray>();
         for (JsonObject obj : array)
@@ -44,6 +46,10 @@ ExecutionState RFIDManager::loop()
             if (token == card.getValue())
             {
                 console->publish(classContext + methodName, "The user " + name + " open the door", INF_LOG);
+                message.isAuthorized = true;
+                message.cardId = token;
+                message.name = name;
+                xQueueSend(*messageQuote, &message, portMAX_DELAY);
                 signalSender->authorized();
                 user = obj;
                 break;
@@ -52,10 +58,15 @@ ExecutionState RFIDManager::loop()
         if (!user)
         {
             console->publish(classContext + methodName, "Unauthorized access attempt ->" + card.getValue(), WAR_LOG);
+            message.isAuthorized = false;
+            message.cardId = card.getValue();
+            message.name = "unknown";
+            xQueueSend(*messageQuote, &message, portMAX_DELAY);
             signalSender->denied();
             return EXE_ABORT;
         }
     }
+
     return EXE_OK;
 }
 
@@ -66,11 +77,11 @@ RFIDCard RFIDManager::check()
     if (!mfrc522.PICC_IsNewCardPresent())
     {
 
-        return RFIDCard(CARD_NONE);
+        return RFIDCard(CARD_UNDEFINED);
     }
     if (!mfrc522.PICC_ReadCardSerial())
     {
-        return RFIDCard(CARD_NONE);
+        return RFIDCard(CARD_UNDEFINED);
     }
     String UID = "";
     for (byte i = 0; i < mfrc522.uid.size; i++)

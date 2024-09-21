@@ -11,7 +11,7 @@
 typedef enum RIFDState
 {
     CARD_OK,
-    CARD_NONE,
+    CARD_UNDEFINED,
     CARD_ERROR
 } RIFDState;
 
@@ -20,6 +20,7 @@ class RFIDCard
 private:
     RIFDState state;
     String value;
+    QueueHandle_t *messageQuote;
 
 public:
     RFIDCard(RIFDState state);
